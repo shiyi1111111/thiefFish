@@ -9,15 +9,25 @@ Local $iCurrentLine = 1
 Local $pagePath = ".\page"  
 ; 文本路径
 Local $sFilePath = ""
-;文本路径存储
+;在读文本路径存储
 Local $sFilePathPath = ".\txtPath" 
+;文本路径存储
+Local $sFilePathsPath = ".\txtPaths" 
 
 Local $sFilePathContent = StringStripWS (FileRead($sFilePathPath) , 3 )
 If @error Then  
 	;画面上输入路径
 	$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
 	If @error = 1 Then
-		Exit  
+		$sTxtName = InputBox("thiefFish", "请输入完整小说名：")
+		If @error = 1 Then
+			Exit
+		Else
+			downloadTxt($sTxtName)
+			$sFilePathContent = StringStripWS (FileRead($sFilePathsPath,1) , 3 )
+			$sFilePath = $sFilePathContent
+			$iCurrentLine = 1
+		EndIf
 	Else
 		$sFilePath = $sText
 		$iCurrentLine = 1
@@ -25,10 +35,16 @@ If @error Then
 Else 
 	;文件获取路径
 	If $sFilePathContent = "" Then
-		;画面上输入路径
 		$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
 		If @error = 1 Then
-			Exit  
+			If @error = 1 Then
+				Exit
+			Else
+				downloadTxt($sTxtName)
+				$sFilePathContent = StringStripWS (FileRead($sFilePathsPath,1) , 3 )
+				$sFilePath = $sFilePathContent
+				$iCurrentLine = 1
+			EndIf
 		Else
 			$sFilePath = $sText
 			$iCurrentLine = 1
@@ -125,13 +141,30 @@ While 1
 		;画面上输入路径
 		$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
 		If @error = 1 Then
-			Exit  
+			$sTxtName = InputBox("thiefFish", "请输入完整小说名：")
+			If @error = 1 Then
+				Exit
+			Else
+				downloadTxt($sTxtName)
+				$sFilePathContent = StringStripWS (FileReadLine($sFilePathsPath,1) , 3 )
+				;MsgBox(0, "test",$sFilePathContent)  
+				$sFilePath = $sFilePathContent
+			EndIf
 		Else
 			$sFilePath = $sText
-			$iCurrentLine = 1
-			GUICtrlSetData($hLabel, $aLines[$iCurrentLine]) ; 更新标签内容  
-			GUICtrlSetColor(-1, $fontColor) ;字体颜色
 		EndIf
+		
+		; 读取文本文件  
+		$sFileContent = FileRead($sFilePath)  
+		If @error Then  
+			MsgBox(0, "错误", "无法读取文件: " & $sFilePath)  
+			Exit  
+		EndIf  
+		$iCurrentLine = 1
+		; 将文件内容分割成行  
+		$aLines = StringSplit($sFileContent, @CRLF)  
+		GUICtrlSetData($hLabel, $aLines[$iCurrentLine]) ; 更新标签内容  
+		GUICtrlSetColor(-1, $fontColor) ;字体颜色
     EndIf 
 WEnd
 
@@ -142,18 +175,26 @@ GUIDelete($hGUI)
 
 Func remainPage($path,$txt)
 	; 打开文件，使用 2 作为模式参数表示写入模式（如果文件已存在，会覆盖）  
-	Local $fileHandle = FileOpen($path, 2)  
+	Local $fileHandle = FileOpen($path, 2)
 
 	; 检查文件是否成功打开  
 	If $fileHandle = -1 Then  
-		ConsoleWrite("无法打开文件: " & $path & @CRLF)  
+		ConsoleWrite("无法打开文件: " & $path & @CRLF)
 		Exit  
 	EndIf  
 
-	; 写入新内容到文件  
-	FileWrite($fileHandle, $txt)  
+ 	FileWrite($fileHandle, $txt)  
 
 	; 关闭文件  
 	FileClose($fileHandle)
 EndFunc
 
+;输入小说名字，在网上下载下来
+Func downloadTxt($bookName)
+	;ShellExecuteWait()
+	ShellExecute('GetBook.exe',$bookName)
+	If @error Then
+		ShellExecute('GetBook1.exe',$bookName)
+	EndIf
+	Sleep(8000)
+EndFunc
