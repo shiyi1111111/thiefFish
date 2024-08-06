@@ -13,11 +13,13 @@ Local $sFilePath = ""
 Local $sFilePathPath = ".\txtPath" 
 ;文本路径存储
 Local $sFilePathsPath = ".\txtPaths" 
+;msg
+Local $inputboxMsg = "请输入文本路径：" & @CRLF &"下一页：a;  上一页：d;  关闭：s;"& @CRLF &"更换文本：r" & @CRLF &"网络小说：cancel"
 
 Local $sFilePathContent = StringStripWS (FileRead($sFilePathPath) , 3 )
 If @error Then  
 	;画面上输入路径
-	$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
+	$sText = InputBox("thiefFish", $inputboxMsg)
 	If @error = 1 Then
 		$sTxtName = InputBox("thiefFish", "请输入完整小说名：")
 		If @error = 1 Then
@@ -35,8 +37,9 @@ If @error Then
 Else 
 	;文件获取路径
 	If $sFilePathContent = "" Then
-		$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
+		$sText = InputBox("thiefFish", $inputboxMsg)
 		If @error = 1 Then
+			$sTxtName = InputBox("thiefFish", "请输入完整小说名：")
 			If @error = 1 Then
 				Exit
 			Else
@@ -139,7 +142,7 @@ While 1
 	; 检查键盘按下事件， "r" 键  
     If _IsPressed("52", $hDLL) Then
 		;画面上输入路径
-		$sText = InputBox("thiefFish", "请输入文本路径  下一页：a 上一页：d 关闭：s 更换文本：r")
+		$sText = InputBox("thiefFish", $inputboxMsg)
 		If @error = 1 Then
 			$sTxtName = InputBox("thiefFish", "请输入完整小说名：")
 			If @error = 1 Then
