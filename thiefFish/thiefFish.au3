@@ -14,7 +14,10 @@ Local $sFilePathPath = ".\txtPath"
 ;文本路径存储
 Local $sFilePathsPath = ".\txtPaths" 
 ;msg
-Local $inputboxMsg = "请输入文本路径：" & @CRLF &"下一页：a;  上一页：d;  关闭：s;"& @CRLF &"更换文本：r" & @CRLF &"网络小说：cancel"
+Local $inputboxMsg = "请输入文本路径：" & @CRLF &"下一页：a;  上一页：d;  关闭：s; 隐藏：q;"& @CRLF &"更换文本：r" & @CRLF &"网络小说：cancel"
+
+; 隐藏状态标志  
+Global $bHidden = False  
 
 Local $sFilePathContent = StringStripWS (FileRead($sFilePathPath) , 3 )
 If @error Then  
@@ -74,7 +77,7 @@ EndIf
 Local $hDLL = DllOpen("user32.dll")
 
 ; 创建一个全屏透明窗口  
-$hGUI = GUICreate("透明窗口", @DesktopWidth*0.5, @DesktopHeight*0.06, 10, @DesktopHeight-90, BitOR($WS_POPUP, $WS_VISIBLE))  
+Global $hGUI = GUICreate("透明窗口", @DesktopWidth*0.5, @DesktopHeight*0.03, 10, @DesktopHeight-80, BitOR($WS_POPUP, $WS_VISIBLE))  
 
 ; 设置窗口背景色  
 ;GUISetBkColor(0x00FF00) ; 设置背景为绿色  
@@ -84,6 +87,7 @@ GUISetState(@SW_SHOW)
 
 ; 设置窗口透明度  
 WinSetTrans($hGUI, "", 150) ; 透明度范围 0 - 255（255 = 不透明，0 = 完全透明）  
+WinSetOnTop($hGUI, "", $WINDOWS_ONTOP)
 
 ; 读取文本文件  
 Local $sFileContent = FileRead($sFilePath)  
@@ -111,14 +115,19 @@ While 1
     
     ; 检查是否关闭窗口  
     If $msg = $GUI_EVENT_CLOSE Then ExitLoop  
-
+	; 检查键盘按下事件，"q" 键  
+    If _IsPressed("51", $hDLL) Then ; "q 键对应的虚拟键码  
+        ToggleWindow()  
+		Sleep(400) ; 防止重复触发  
+		ContinueLoop
+    EndIf
     ; 检查键盘按下事件，"a" 键  
     If _IsPressed("41", $hDLL) Then ; "a" 键对应的虚拟键码  
         $iCurrentLine += 2 ; 行索引递增  
         If $iCurrentLine > $aLines[0] Then $iCurrentLine = $aLines[0] ; 不能超过总行数  
         GUICtrlSetData($hLabel, $aLines[$iCurrentLine]) ; 更新标签内容  
 		GUICtrlSetColor(-1, $fontColor) ;字体颜色
-		Sleep(100) ; 防止重复触发  
+		Sleep(400) ; 防止重复触发  
 		ContinueLoop
     EndIf  
 	; 检查键盘按下事件，"d" 键
@@ -130,7 +139,7 @@ While 1
         If $iCurrentLine > $aLines[0] Then $iCurrentLine = $aLines[0] ; 不能超过总行数  
         GUICtrlSetData($hLabel, $aLines[$iCurrentLine]) ; 更新标签内容  
 		GUICtrlSetColor(-1, $fontColor) ;字体颜色
-		Sleep(100) ; 防止重复触发  
+		Sleep(400) ; 防止重复触发  
 		ContinueLoop
     EndIf  
 	; 检查键盘按下事件， "s" 键 
@@ -195,9 +204,22 @@ EndFunc
 ;输入小说名字，在网上下载下来
 Func downloadTxt($bookName)
 	;ShellExecuteWait()
-	ShellExecute('GetBook.exe',$bookName)
+	ShellExecute('GetBook1.exe',$bookName)
 	If @error Then
-		ShellExecute('GetBook1.exe',$bookName)
+		ShellExecute('GetBook.exe',$bookName)
 	EndIf
 	Sleep(8000)
 EndFunc
+
+Func ToggleWindow()  
+    If Not $bHidden Then  
+        ; 隐藏窗口  
+        WinSetTrans($hGUI, "", 0)  
+        $bHidden = True  
+    Else  
+        ; 显示窗口  
+        WinSetTrans($hGUI, "", 150) 
+        $bHidden = False  
+    EndIf  
+EndFunc 
+
